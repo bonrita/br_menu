@@ -1,0 +1,57 @@
+<?php
+
+/**
+ * @file
+ * Extra functionality for the menu items.
+ */
+use Drupal\Core\Field\BaseFieldDefinition;
+
+/**
+ * Implements hook_entity_base_field_info().
+ *
+ * Adds an entity-reference field to track the menu entry created from the node
+ * add/edit form so that the menu link can easily be accessed.
+ *
+ * Based on token_entity_base_field_info().
+ */
+function br_menu_entity_base_field_info(\Drupal\Core\Entity\EntityTypeInterface $entity_type) {
+  if ($entity_type->id() === 'node') {
+    $fields['br_menu_link'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Menu link'))
+      ->setDescription(t('Stored menu link for the node.'))
+      ->setTranslatable(TRUE)
+      ->setRevisionable(TRUE)
+      ->setDefaultValue(0)
+      ->setSetting('target_type', 'menu_link_content')
+      ->setDisplayOptions('view', array(
+        'label' => 'hidden',
+        'type' => 'hidden',
+      ))
+      ->setDisplayOptions('form', array(
+        'type' => 'hidden',
+      ));
+
+    return $fields;
+  }
+
+  return [];
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_presave().
+ *
+ * Store the id of the node's menu link to allow entity reference queries.
+ * This uses the 'menu_link' calculated field from Token module.
+ *
+ * @param \Drupal\Core\Entity\EntityInterface $entity
+ */
+function br_menu_node_presave(Drupal\Core\Entity\EntityInterface $entity) {
+
+  /** @var \Drupal\node\Entity\Node $entity */
+  if ($entity->hasField('menu_link') && !$entity->get('menu_link')->isEmpty()) {
+    $entity->br_menu_link = $entity->menu_link;
+  }
+  else {
+    $entity->br_menu_link = 0;
+  }
+}

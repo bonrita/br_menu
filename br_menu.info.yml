@@ -1,0 +1,7 @@
+name: Br Menu
+type: module
+description: Br Menu
+core: 8.x
+package: Br
+dependencies:
+- token
